@@ -22,7 +22,6 @@
     <style name="PingTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light" />
 
     <style name="PingTheme.NoStatus">
-        <item name="android:windowTranslucentStatus">true</item>
     </style>
 
 </resources>
