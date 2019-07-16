@@ -30,7 +30,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         lastLocation = location
 
         val placeQuery =
-                if (PingPlacePicker.isNearbySearchEnabled)
+                if (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace)
                     repository.getNearbyPlaces(location)
                 else
                     repository.getNearbyPlaces()

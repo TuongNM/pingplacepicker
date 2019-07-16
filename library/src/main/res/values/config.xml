@@ -9,6 +9,12 @@
     -->
     <bool name="enable_nearby_search">false</bool>
 
+    <!--
+       Use /nearbysearch from Places Web API instead of findCurrentPlace() from Places for Android API
+       but without refresh button.
+    -->
+    <bool name="use_nearby_search_instead_of_current_place">false</bool>
+
     <!-- 0.002 USD per each (2.00 USD per 1000) -->
     <bool name="show_confirmation_photo">true</bool>
 

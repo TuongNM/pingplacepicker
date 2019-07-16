@@ -61,6 +61,7 @@ class PingPlacePicker private constructor() {
             }
 
             isNearbySearchEnabled = activity.resources.getBoolean(R.bool.enable_nearby_search)
+            useNearbySearchInsteadOfCurrentPlace = activity.resources.getBoolean(R.bool.use_nearby_search_instead_of_current_place);
 
             intent.setClass(activity, PlacePickerActivity::class.java)
             return intent
@@ -90,6 +91,7 @@ class PingPlacePicker private constructor() {
         var mapsApiKey: String = ""
 
         var isNearbySearchEnabled = false
+        var useNearbySearchInsteadOfCurrentPlace = false
 
         @JvmStatic
         fun getPlace(intent: Intent): Place? {
