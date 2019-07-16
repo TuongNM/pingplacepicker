@@ -14,9 +14,10 @@ import io.reactivex.Single
  */
 interface PlaceRepository {
 
-    fun getNearbyPlaces(): Single<List<Place>>
+    fun getNearbyPlaces(): Single<Pair<String?, List<Place>>>
 
-    fun getNearbyPlaces(location: LatLng): Single<List<Place>>
+    fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<Place>>>
+    fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<Place>>>
 
     fun getPlacePhoto(photoMetadata: PhotoMetadata): Single<Bitmap>
 

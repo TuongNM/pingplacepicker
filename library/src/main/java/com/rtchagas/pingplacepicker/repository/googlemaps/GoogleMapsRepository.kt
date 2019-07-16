@@ -31,7 +31,7 @@ class GoogleMapsRepository constructor(
        Billing](https://developers.google.com/places/android-sdk/usage-and-billing#find-current-place)
      */
     @SuppressLint("MissingPermission")
-    override fun getNearbyPlaces(): Single<List<Place>> {
+    override fun getNearbyPlaces(): Single<Pair<String?, List<Place>>> {
 
         // Create request
         val request = FindCurrentPlaceRequest.builder(getPlaceFields()).build()
@@ -41,10 +41,12 @@ class GoogleMapsRepository constructor(
                 if (task.isSuccessful) {
                     task.result?.let {
                         val placeList = sortByLikelihood(it.placeLikelihoods)
-                        emitter.onSuccess(placeList.map { likelihood -> likelihood.place })
+                        val likelihoodPlaceList = placeList.map { likelihood -> likelihood.place }
+
+                        emitter.onSuccess( Pair(null, likelihoodPlaceList) )
                     }
                     // Empty result
-                    emitter.onSuccess(listOf())
+                    emitter.onSuccess( Pair(null, listOf()) )
                 }
                 else {
                     emitter.onError(task.exception ?: Exception("No places for you..."))
@@ -59,26 +61,21 @@ class GoogleMapsRepository constructor(
      * [Places SDK WEB API Usage and
     Billing](https://developers.google.com/maps/billing/understanding-cost-of-use#nearby-search)
      */
-    override fun getNearbyPlaces(location: LatLng): Single<List<Place>> {
+    override fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<Place>>> {
 
         val locationParam = "${location.latitude},${location.longitude}"
 
         return googleMapsAPI.searchNearby(locationParam, PingPlacePicker.mapsApiKey)
                 .flatMap { searchResult ->
+                    return@flatMap this.handleNearbySearchResult(searchResult)
+                }
+    }
 
-                    val singles = mutableListOf<Single<Place>>()
-
-                    searchResult.results.forEach {
-                        singles.add(getPlaceById(it.placeId))
-                    }
-
-                    return@flatMap Single.zip(singles) { listOfResults ->
-                        val places = mutableListOf<Place>()
-                        listOfResults.forEach {
-                            places.add(it as Place)
-                        }
-                        return@zip places
-                    }
+    override fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<Place>>>
+    {
+        return googleMapsAPI.searchNearbyNextPage(pageToken, PingPlacePicker.mapsApiKey)
+                .flatMap { searchResult ->
+                    return@flatMap this.handleNearbySearchResult(searchResult)
                 }
     }
 
@@ -170,5 +167,23 @@ class GoogleMapsRepository constructor(
         mutableList.sortByDescending { it.likelihood }
 
         return mutableList
+    }
+
+    private fun handleNearbySearchResult(searchResult: SearchResult): Single<Pair<String?, List<Place>>>
+    {
+        val singles = mutableListOf<Single<Place>>()
+
+        searchResult.results.forEach {
+            singles.add(getPlaceById(it.placeId))
+        }
+
+        return Single.zip(singles) { listOfResults ->
+            val places = mutableListOf<Place>()
+            listOfResults.forEach {
+                places.add(it as Place)
+            }
+
+            return@zip Pair(searchResult.next_page_token, places)
+        }
     }
 }

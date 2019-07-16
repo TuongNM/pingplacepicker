@@ -35,12 +35,27 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                 else
                     repository.getNearbyPlaces()
 
+        var newPlaceList: List<Place> = listOf()
         val disposable: Disposable = placeQuery
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { placeList.value = Resource.loading() }
                 .subscribe(
-                        { result: List<Place> -> placeList.value = Resource.success(result) },
+                        { result: Pair<String?, List<Place>> ->
+                            val (nextPageToken, aPlaceList) = result
+                            newPlaceList = aPlaceList
+
+                            if (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace)
+                            {
+                                nextPageToken?.let { pageToken ->
+                                    getNearbyPlacesWithPageToken(pageToken, newPlaceList)
+                                }
+                            }
+                            else
+                            {
+                                placeList.value = Resource.success(aPlaceList)
+                            }
+                        },
                         { error: Throwable -> placeList.value = Resource.error(error) }
                 )
 
@@ -67,5 +82,38 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         addDisposable(disposable)
 
         return liveData
+    }
+
+    private fun getNearbyPlacesWithPageToken(pageToken: String, currentPlaceList: List<Place>)
+    {
+        try
+        {
+            // Google issues the next page token before it becomes valid.
+            // Therefore, need to wait to ensure that enough time passes so that the token does become valid.
+            Thread.sleep(1500)
+        }
+        catch (e: Exception)
+        {
+            e.printStackTrace()
+        }
+
+        val nextDisposable: Disposable = repository.getNearbyPlacesPageToken(pageToken)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { result: Pair<String?, List<Place>> ->
+                            val (nextPageToken, nextPlaceList) = result
+                            val newPlaceList = currentPlaceList + nextPlaceList
+
+                            nextPageToken?.also { theNextPageToken ->
+                                getNearbyPlacesWithPageToken(theNextPageToken, newPlaceList)
+                            } ?: kotlin.run {
+                                placeList.value = Resource.success(newPlaceList)
+                            }
+                        },
+                        { error: Throwable -> placeList.value = Resource.error(error) }
+                )
+
+        addDisposable(nextDisposable)
     }
 }
