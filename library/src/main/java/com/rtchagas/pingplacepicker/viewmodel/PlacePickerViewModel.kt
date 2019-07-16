@@ -1,5 +1,6 @@
 package com.rtchagas.pingplacepicker.viewmodel
 
+import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
@@ -53,7 +54,8 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                             }
                             else
                             {
-                                placeList.value = Resource.success(aPlaceList)
+                                val sortedPlaceList = this.sortPlaceListByDistanceAndFilterPOIs(aPlaceList)
+                                placeList.value = Resource.success(sortedPlaceList)
                             }
                         },
                         { error: Throwable -> placeList.value = Resource.error(error) }
@@ -108,12 +110,67 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                             nextPageToken?.also { theNextPageToken ->
                                 getNearbyPlacesWithPageToken(theNextPageToken, newPlaceList)
                             } ?: kotlin.run {
-                                placeList.value = Resource.success(newPlaceList)
+                                val sortedPlaceList = this.sortPlaceListByDistanceAndFilterPOIs(newPlaceList)
+                                placeList.value = Resource.success(sortedPlaceList)
                             }
                         },
                         { error: Throwable -> placeList.value = Resource.error(error) }
                 )
 
         addDisposable(nextDisposable)
+    }
+
+    /**
+     * Sorts the given placeList by distance to the last location and also filters out only the POIs.
+     */
+    private fun sortPlaceListByDistanceAndFilterPOIs(placeList: List<Place>): List<Place>
+    {
+        val filteredList = placeList.filter { place ->
+            val typeList = place.types ?: listOf()
+            typeList.contains(Place.Type.POINT_OF_INTEREST)
+        }
+
+        return filteredList.sortedWith(Comparator<Place>{ firstPlace, secondPlace ->
+            val firstLatLong = firstPlace.latLng
+            val secondLatLong = secondPlace.latLng
+
+            if (firstLatLong != null && secondLatLong == null)
+            {
+                return@Comparator -1
+            }
+            else if (firstLatLong == null && secondLatLong != null)
+            {
+                return@Comparator 1
+            }
+
+            if (firstLatLong != null && secondLatLong != null)
+            {
+                val firstLocation = Location("firstLocation")
+                firstLocation.latitude = firstLatLong.latitude
+                firstLocation.longitude = firstLatLong.longitude
+
+                val secondLocation = Location("secondLocation")
+                secondLocation.latitude = secondLatLong.latitude
+                secondLocation.longitude = secondLatLong.longitude
+
+                val currentLocation = Location("currentLocation")
+                currentLocation.latitude = this.lastLocation.latitude
+                currentLocation.longitude = this.lastLocation.longitude
+
+                val firstDistance = currentLocation.distanceTo(firstLocation)
+                val secondDistance = currentLocation.distanceTo(secondLocation)
+                
+                when
+                {
+                    firstDistance < secondDistance -> return@Comparator -1
+                    firstDistance > secondDistance -> return@Comparator 1
+                    else -> return@Comparator 0
+                }
+            }
+            else
+            {
+                return@Comparator 0
+            }
+        })
     }
 }
