@@ -15,6 +15,8 @@
     -->
     <bool name="use_nearby_search_instead_of_current_place">false</bool>
 
+    <bool name="disable_autocomplete">false</bool>
+
     <!-- 0.002 USD per each (2.00 USD per 1000) -->
     <bool name="show_confirmation_photo">true</bool>
 

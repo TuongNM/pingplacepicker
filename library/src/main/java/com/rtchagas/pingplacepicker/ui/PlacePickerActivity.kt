@@ -137,6 +137,17 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         }
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean
+    {
+        if (PingPlacePicker.isAutocompleteDisabled)
+        {
+            val searchItem = menu?.findItem(R.id.action_search)
+            searchItem?.isVisible = false
+        }
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_place_picker, menu)
         return true
@@ -149,7 +160,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
             return true
         }
 
-        if (R.id.action_search == item.itemId) {
+        if (R.id.action_search == item.itemId && !PingPlacePicker.isAutocompleteDisabled) {
             requestPlacesSearch()
             return true
         }
@@ -368,7 +379,16 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
 
         // Bind the listeners
         btnMyLocation.setOnClickListener { getDeviceLocation(true) }
-        cardSearch.setOnClickListener { requestPlacesSearch() }
+
+        if (!PingPlacePicker.isAutocompleteDisabled)
+        {
+            cardSearch.setOnClickListener { requestPlacesSearch() }
+        }
+        else
+        {
+            cardSearchIcon.visibility = View.GONE
+        }
+
         ivMarkerSelect.setOnClickListener { selectThisPlace() }
         tvLocationSelect.setOnClickListener { selectThisPlace() }
 

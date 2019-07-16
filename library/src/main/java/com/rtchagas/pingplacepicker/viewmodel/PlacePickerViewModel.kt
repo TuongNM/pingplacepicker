@@ -36,7 +36,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                 else
                     repository.getNearbyPlaces()
 
-        var newPlaceList: List<Place> = listOf()
+        var newPlaceList: List<Place>
         val disposable: Disposable = placeQuery
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
