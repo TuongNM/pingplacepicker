@@ -45,7 +45,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                             val (nextPageToken, aPlaceList) = result
                             newPlaceList = aPlaceList
 
-                            if (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace)
+                            if ( (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace) && PingPlacePicker.resolveNearbySearchPaging )
                             {
                                 nextPageToken?.let { pageToken ->
                                     getNearbyPlacesWithPageToken(pageToken, newPlaceList)
