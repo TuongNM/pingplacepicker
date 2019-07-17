@@ -1,6 +1,5 @@
 package com.rtchagas.pingplacepicker.viewmodel
 
-import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
@@ -131,45 +130,25 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         }
 
         return filteredList.sortedWith(Comparator<Place>{ firstPlace, secondPlace ->
-            val firstLatLong = firstPlace.latLng
-            val secondLatLong = secondPlace.latLng
+            // Sort alphabetically.
+            val firstName = firstPlace.name
+            val secondName = secondPlace.name
 
-            if (firstLatLong != null && secondLatLong == null)
+            if (firstName != null && secondName == null)
             {
-                return@Comparator -1
+                -1
             }
-            else if (firstLatLong == null && secondLatLong != null)
+            else if (firstName == null && secondName != null)
             {
-                return@Comparator 1
+                1
             }
-
-            if (firstLatLong != null && secondLatLong != null)
+            else if (firstName != null && secondName != null)
             {
-                val firstLocation = Location("firstLocation")
-                firstLocation.latitude = firstLatLong.latitude
-                firstLocation.longitude = firstLatLong.longitude
-
-                val secondLocation = Location("secondLocation")
-                secondLocation.latitude = secondLatLong.latitude
-                secondLocation.longitude = secondLatLong.longitude
-
-                val currentLocation = Location("currentLocation")
-                currentLocation.latitude = this.lastLocation.latitude
-                currentLocation.longitude = this.lastLocation.longitude
-
-                val firstDistance = currentLocation.distanceTo(firstLocation)
-                val secondDistance = currentLocation.distanceTo(secondLocation)
-                
-                when
-                {
-                    firstDistance < secondDistance -> return@Comparator -1
-                    firstDistance > secondDistance -> return@Comparator 1
-                    else -> return@Comparator 0
-                }
+                firstName.compareTo(secondName, ignoreCase = true)
             }
             else
             {
-                return@Comparator 0
+                0
             }
         })
     }
