@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface GoogleMapsAPI {
 
-    @GET("place/nearbysearch/json?radius=100")
+    @GET("place/nearbysearch/json?radius=100&type=point_of_interest")
     fun searchNearby(@Query("location") location: String,
                      @Query("key") apiKey: String)
             : Single<SearchResult>
