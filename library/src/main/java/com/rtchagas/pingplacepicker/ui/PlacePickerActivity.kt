@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -216,11 +217,14 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         googleMap?.clear()
 
         for (place in places) {
+            var markerOptions = MarkerOptions().position(place.latLng!!)
 
-            val marker: Marker? = googleMap?.addMarker(MarkerOptions()
-                    .position(place.latLng!!)
-                    .icon(getPlaceMarkerBitmap(place)))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            {
+                markerOptions = markerOptions.icon(getPlaceMarkerBitmap(place));
+            }
 
+            var marker: Marker? = googleMap?.addMarker(markerOptions);
             marker?.tag = place
         }
     }
