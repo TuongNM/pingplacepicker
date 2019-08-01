@@ -17,6 +17,7 @@ import com.rtchagas.pingplacepicker.Config
 import com.rtchagas.pingplacepicker.PingPlacePicker
 import com.rtchagas.pingplacepicker.R
 import com.rtchagas.pingplacepicker.inject.PingKoinComponent
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.viewmodel.PlaceConfirmDialogViewModel
 import com.rtchagas.pingplacepicker.viewmodel.Resource
 import com.squareup.picasso.Picasso
@@ -30,7 +31,7 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
 
         private const val ARG_PLACE = "arg_place"
 
-        fun newInstance(place: Place,
+        fun newInstance(place: SimplePlace,
                         listener: OnPlaceConfirmedListener): PlaceConfirmDialogFragment {
 
             val args = Bundle()

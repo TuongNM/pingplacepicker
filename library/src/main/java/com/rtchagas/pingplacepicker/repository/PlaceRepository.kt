@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.PhotoMetadata
 import com.google.android.libraries.places.api.model.Place
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import io.reactivex.Single
 
 /**
@@ -16,10 +17,10 @@ interface PlaceRepository {
 
     fun getNearbyPlaces(): Single<Pair<String?, List<Place>>>
 
-    fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<Place>>>
-    fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<Place>>>
+    fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<SimplePlace>>>
+    fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<SimplePlace>>>
 
     fun getPlacePhoto(photoMetadata: PhotoMetadata): Single<Bitmap>
 
-    fun getPlaceByLocation(location: LatLng): Single<Place?>
+    fun getPlaceByLocation(location: LatLng): Single<SimplePlace?>
 }

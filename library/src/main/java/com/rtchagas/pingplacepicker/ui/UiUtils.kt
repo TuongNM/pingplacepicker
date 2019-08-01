@@ -1,8 +1,8 @@
 package com.rtchagas.pingplacepicker.ui
 
 import android.content.Context
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.R
+import com.rtchagas.pingplacepicker.model.SimplePlace
 
 
 object UiUtils {
@@ -10,14 +10,14 @@ object UiUtils {
     /**
      * Gets the place drawable resource according to its type
      */
-    fun getPlaceDrawableRes(context: Context, place: Place): Int {
+    fun getPlaceDrawableRes(context: Context, place: SimplePlace): Int {
 
         val defType = "drawable"
         val defPackage = context.packageName
 
         place.types?.let {
-            for (type: Place.Type in it) {
-                val name = type.name.toLowerCase()
+            for (type: String in it) {
+                val name = type.toLowerCase()
                 val id: Int = context.resources
                         .getIdentifier("ic_places_$name", defType, defPackage)
                 if (id > 0) return id

@@ -4,11 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.R
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import kotlinx.android.synthetic.main.item_place.view.*
 
-class PlacePickerAdapter(private var placeList: List<Place>, private val clickListener: (Place) -> Unit)
+class PlacePickerAdapter(private var placeList: List<SimplePlace>, private val clickListener: (SimplePlace) -> Unit)
     : RecyclerView.Adapter<PlacePickerAdapter.PlaceViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceViewHolder {
@@ -27,20 +27,20 @@ class PlacePickerAdapter(private var placeList: List<Place>, private val clickLi
         return placeList.size
     }
 
-    fun swapData(newPlaceList: List<Place>) {
+    fun swapData(newPlaceList: List<SimplePlace>) {
         placeList = newPlaceList
         notifyDataSetChanged()
     }
 
     inner class PlaceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        fun bind(place: Place, listener: (Place) -> Unit) {
+        fun bind(place: SimplePlace, listener: (SimplePlace) -> Unit) {
 
             with(itemView) {
                 setOnClickListener { listener(place) }
                 ivPlaceType.setImageResource(UiUtils.getPlaceDrawableRes(itemView.context, place))
                 tvPlaceName.text = place.name
-                tvPlaceAddress.text = place.address
+                tvPlaceAddress.text = place.vicinity
             }
         }
     }

@@ -13,6 +13,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.rtchagas.pingplacepicker.Config
 import com.rtchagas.pingplacepicker.PingPlacePicker
 import com.rtchagas.pingplacepicker.model.SearchResult
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.repository.PlaceRepository
 import io.reactivex.Single
 
@@ -61,21 +62,21 @@ class GoogleMapsRepository constructor(
      * [Places SDK WEB API Usage and
     Billing](https://developers.google.com/maps/billing/understanding-cost-of-use#nearby-search)
      */
-    override fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<Place>>> {
+    override fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<SimplePlace>>> {
 
         val locationParam = "${location.latitude},${location.longitude}"
 
         return googleMapsAPI.searchNearby(locationParam, PingPlacePicker.mapsApiKey)
-                .flatMap { searchResult ->
-                    return@flatMap this.handleNearbySearchResult(searchResult)
+                .map { searchResult ->
+                    Pair(searchResult.next_page_token, searchResult.results)
                 }
     }
 
-    override fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<Place>>>
+    override fun getNearbyPlacesPageToken(pageToken: String): Single<Pair<String?, List<SimplePlace>>>
     {
         return googleMapsAPI.searchNearbyNextPage(pageToken, PingPlacePicker.mapsApiKey)
-                .flatMap { searchResult ->
-                    return@flatMap this.handleNearbySearchResult(searchResult)
+                .map { searchResult ->
+                    Pair(searchResult.next_page_token, searchResult.results)
                 }
     }
 
@@ -110,14 +111,14 @@ class GoogleMapsRepository constructor(
      * [Places SDK for Android Usage and
        Billing](https://developers.google.com/maps/documentation/geocoding/usage-and-billing#pricing-for-the-geocoding-api)
      */
-    override fun getPlaceByLocation(location: LatLng): Single<Place?> {
+    override fun getPlaceByLocation(location: LatLng): Single<SimplePlace?> {
 
         val paramLocation = "${location.latitude},${location.longitude}"
 
         return googleMapsAPI.findByLocation(paramLocation, PingPlacePicker.mapsApiKey)
                 .flatMap { result: SearchResult ->
                     if (("OK" == result.status) && result.results.isNotEmpty()) {
-                        return@flatMap getPlaceById(result.results[0].placeId)
+                        return@flatMap Single.just(result.results[0])
                     }
                     return@flatMap Single.just(null)
                 }
@@ -169,6 +170,8 @@ class GoogleMapsRepository constructor(
         return mutableList
     }
 
+    // TODO: Remove if no longer needed.
+    /*
     private fun handleNearbySearchResult(searchResult: SearchResult): Single<Pair<String?, List<Place>>>
     {
         val singles = mutableListOf<Single<Place>>()
@@ -186,4 +189,5 @@ class GoogleMapsRepository constructor(
             return@zip Pair(searchResult.next_page_token, places)
         }
     }
+    */
 }

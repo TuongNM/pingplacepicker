@@ -42,6 +42,8 @@ import com.rtchagas.pingplacepicker.PingPlacePicker
 import com.rtchagas.pingplacepicker.R
 import com.rtchagas.pingplacepicker.helper.PermissionsHelper
 import com.rtchagas.pingplacepicker.inject.PingKoinComponent
+import com.rtchagas.pingplacepicker.model.Geometry
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.viewmodel.PlacePickerViewModel
 import com.rtchagas.pingplacepicker.viewmodel.Resource
 import kotlinx.android.synthetic.main.activity_place_picker.*
@@ -133,7 +135,9 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         if ((requestCode == AUTOCOMPLETE_REQUEST_CODE) && (resultCode == Activity.RESULT_OK)) {
             data?.run {
                 val place = Autocomplete.getPlaceFromIntent(this)
-                showConfirmPlacePopup(place)
+                // TODO: Check if the forcefull latitude/longitude access can be changed.
+                val simplePlace = SimplePlace("", listOf(), Geometry(com.rtchagas.pingplacepicker.model.Location(place.latLng!!.latitude, place.latLng!!.longitude)), place.name, place.address)
+                showConfirmPlacePopup(simplePlace)
             }
         }
     }
@@ -186,7 +190,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
 
     override fun onMarkerClick(marker: Marker): Boolean {
 
-        val place = marker.tag as Place
+        val place = marker.tag as SimplePlace
         showConfirmPlacePopup(place)
 
         return false
@@ -199,7 +203,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         finish()
     }
 
-    private fun bindPlaces(places: List<Place>) {
+    private fun bindPlaces(places: List<SimplePlace>) {
 
         // Bind to the recycler view
 
@@ -217,7 +221,8 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         googleMap?.clear()
 
         for (place in places) {
-            var markerOptions = MarkerOptions().position(place.latLng!!)
+            val placeLatLng = LatLng(place.geometry.location.lat, place.geometry.location.lng)
+            var markerOptions = MarkerOptions().position(placeLatLng)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
@@ -310,7 +315,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
     }
 
     @Suppress("DEPRECATION")
-    private fun getPlaceMarkerBitmap(place: Place): BitmapDescriptor {
+    private fun getPlaceMarkerBitmap(place: SimplePlace): BitmapDescriptor {
 
         val innerIconSize: Int = resources.getDimensionPixelSize(R.dimen.marker_inner_icon_size)
 
@@ -341,7 +346,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    private fun handlePlaceByLocation(result: Resource<Place?>) {
+    private fun handlePlaceByLocation(result: Resource<SimplePlace?>) {
 
         when (result.status) {
             Resource.Status.LOADING -> {
@@ -359,7 +364,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
 
     }
 
-    private fun handlePlacesLoaded(result: Resource<List<Place>>) {
+    private fun handlePlacesLoaded(result: Resource<List<SimplePlace>>) {
 
         when (result.status) {
             Resource.Status.LOADING -> {
@@ -522,7 +527,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         googleMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(default, defaultZoom))
     }
 
-    private fun showConfirmPlacePopup(place: Place) {
+    private fun showConfirmPlacePopup(place: SimplePlace) {
         val fragment = PlaceConfirmDialogFragment.newInstance(place, this)
         fragment.show(supportFragmentManager, DIALOG_CONFIRM_PLACE_TAG)
     }

@@ -3,8 +3,8 @@ package com.rtchagas.pingplacepicker.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.PingPlacePicker
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.repository.PlaceRepository
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -14,11 +14,11 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
     : BaseViewModel() {
 
     // Keep the place list in this view model state
-    private val placeList: MutableLiveData<Resource<List<Place>>> = MutableLiveData()
+    private val placeList: MutableLiveData<Resource<List<SimplePlace>>> = MutableLiveData()
 
     private var lastLocation: LatLng = LatLng(0.0, 0.0)
 
-    fun getNearbyPlaces(location: LatLng): LiveData<Resource<List<Place>>> {
+    fun getNearbyPlaces(location: LatLng): LiveData<Resource<List<SimplePlace>>> {
 
         // If we already loaded the places for this location, return the same live data
         // instead of fetching (and charging) again.
@@ -29,19 +29,23 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         // Update the last fetched location
         lastLocation = location
 
-        val placeQuery =
+        // TODO: Find a way to combine the Places of getNearbyPlaces() with th SimplePlaces of getNearbyPlaces(location. Possible need a third ProxyPlace class.
+        /*
+                val placeQuery =
                 if (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace)
                     repository.getNearbyPlaces(location)
                 else
                     repository.getNearbyPlaces()
+         */
+        val placeQuery = repository.getNearbyPlaces(location)
 
-        var newPlaceList: List<Place>
+        var newPlaceList: List<SimplePlace>
         val disposable: Disposable = placeQuery
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { placeList.value = Resource.loading() }
                 .subscribe(
-                        { result: Pair<String?, List<Place>> ->
+                        { result: Pair<String?, List<SimplePlace>> ->
                             val (nextPageToken, aPlaceList) = result
                             newPlaceList = aPlaceList
 
@@ -66,16 +70,16 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         return placeList
     }
 
-    fun getPlaceByLocation(location: LatLng): LiveData<Resource<Place?>> {
+    fun getPlaceByLocation(location: LatLng): LiveData<Resource<SimplePlace?>> {
 
-        val liveData = MutableLiveData<Resource<Place?>>()
+        val liveData = MutableLiveData<Resource<SimplePlace?>>()
 
         val disposable: Disposable = repository.getPlaceByLocation(location)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { liveData.value = Resource.loading() }
                 .subscribe(
-                        { result: Place? -> liveData.value = Resource.success(result) },
+                        { result: SimplePlace? -> liveData.value = Resource.success(result) },
                         { error: Throwable -> liveData.value = Resource.error(error) }
                 )
 
@@ -85,7 +89,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         return liveData
     }
 
-    private fun getNearbyPlacesWithPageToken(pageToken: String, currentPlaceList: List<Place>)
+    private fun getNearbyPlacesWithPageToken(pageToken: String, currentPlaceList: List<SimplePlace>)
     {
         try
         {
@@ -102,7 +106,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { result: Pair<String?, List<Place>> ->
+                        { result: Pair<String?, List<SimplePlace>> ->
                             val (nextPageToken, nextPlaceList) = result
                             val newPlaceList = currentPlaceList + nextPlaceList
 
@@ -122,14 +126,14 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
     /**
      * Sorts the given placeList by distance to the last location and also filters out only the POIs.
      */
-    private fun sortPlaceListByDistanceAndFilterPOIs(placeList: List<Place>): List<Place>
+    private fun sortPlaceListByDistanceAndFilterPOIs(placeList: List<SimplePlace>): List<SimplePlace>
     {
         val filteredList = placeList.filter { place ->
             val typeList = place.types ?: listOf()
-            typeList.contains(Place.Type.POINT_OF_INTEREST)
+            typeList.contains("point_of_interest")
         }
 
-        return filteredList.sortedWith(Comparator<Place>{ firstPlace, secondPlace ->
+        return filteredList.sortedWith(Comparator<SimplePlace>{ firstPlace, secondPlace ->
             // Sort alphabetically.
             val firstName = firstPlace.name
             val secondName = secondPlace.name
