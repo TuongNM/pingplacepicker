@@ -10,9 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDialogFragment
-import androidx.lifecycle.Observer
 import androidx.transition.TransitionManager
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.Config
 import com.rtchagas.pingplacepicker.PingPlacePicker
 import com.rtchagas.pingplacepicker.R
@@ -48,13 +46,13 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
 
     private val viewModel: PlaceConfirmDialogViewModel by viewModel()
 
-    private lateinit var place: Place
+    private lateinit var place: SimplePlace
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Check mandatory parameters for this fragment
-        if ((arguments == null) || (arguments?.getParcelable<Place>(ARG_PLACE) == null)) {
+        if ((arguments == null) || (arguments?.getParcelable<SimplePlace>(ARG_PLACE) == null)) {
             throw IllegalArgumentException("You must pass a Place as argument to this fragment")
         }
 
@@ -88,7 +86,7 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
                 .inflate(R.layout.fragment_dialog_place_confirm, null)
 
         content.tvPlaceName.text = place.name
-        content.tvPlaceAddress.text = place.address
+        content.tvPlaceAddress.text = place.vicinity
 
         fetchPlaceMap(content)
         fetchPlacePhoto(content)
@@ -100,8 +98,8 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
 
         if (resources.getBoolean(R.bool.show_confirmation_map)) {
             val staticMapUrl = Config.STATIC_MAP_URL
-                    .format(place.latLng?.latitude,
-                            place.latLng?.longitude,
+                    .format(place.geometry.location.lat,
+                            place.geometry.location.lng,
                             PingPlacePicker.androidApiKey)
             Picasso.get().load(staticMapUrl).into(contentView.ivPlaceMap)
         }
@@ -111,16 +109,7 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
     }
 
     private fun fetchPlacePhoto(contentView: View) {
-
-        if (resources.getBoolean(R.bool.show_confirmation_photo)
-                && (place.photoMetadatas != null)) {
-
-            viewModel.getPlacePhoto(place.photoMetadatas!![0]).observe(this,
-                    Observer { handlePlacePhotoLoaded(contentView, it) })
-        }
-        else {
-            contentView.ivPlacePhoto.visibility = View.GONE
-        }
+        contentView.ivPlacePhoto.visibility = View.GONE
     }
 
     private fun handlePlacePhotoLoaded(contentView: View, result: Resource<Bitmap>) {
@@ -139,6 +128,6 @@ class PlaceConfirmDialogFragment : AppCompatDialogFragment(), PingKoinComponent 
      * Listener called when a place is updated.
      */
     interface OnPlaceConfirmedListener {
-        fun onPlaceConfirmed(place: Place)
+        fun onPlaceConfirmed(place: SimplePlace)
     }
 }

@@ -196,7 +196,7 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
         return false
     }
 
-    override fun onPlaceConfirmed(place: Place) {
+    override fun onPlaceConfirmed(place: SimplePlace) {
         val data = Intent()
         data.putExtra(PingPlacePicker.EXTRA_PLACE, place)
         setResult(Activity.RESULT_OK, data)

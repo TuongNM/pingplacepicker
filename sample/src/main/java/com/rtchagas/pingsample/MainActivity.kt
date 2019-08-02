@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.PingPlacePicker
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         if ((requestCode == pingActivityRequestCode) && (resultCode == Activity.RESULT_OK)) {
 
-            val place: Place? = PingPlacePicker.getPlace(data!!)
+            val place: SimplePlace? = PingPlacePicker.getPlace(data!!)
 
             toast("You selected: ${place?.name}")
         }

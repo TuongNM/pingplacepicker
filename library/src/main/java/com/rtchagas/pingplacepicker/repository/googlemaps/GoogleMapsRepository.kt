@@ -12,10 +12,11 @@ import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.rtchagas.pingplacepicker.Config
 import com.rtchagas.pingplacepicker.PingPlacePicker
-import com.rtchagas.pingplacepicker.model.SearchResult
+import com.rtchagas.pingplacepicker.model.SearchResultGeocode
 import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.repository.PlaceRepository
 import io.reactivex.Single
+import java.util.*
 
 
 class GoogleMapsRepository constructor(
@@ -115,10 +116,14 @@ class GoogleMapsRepository constructor(
 
         val paramLocation = "${location.latitude},${location.longitude}"
 
-        return googleMapsAPI.findByLocation(paramLocation, PingPlacePicker.mapsApiKey)
-                .flatMap { result: SearchResult ->
+        val languageCode = Locale.getDefault().language
+        return googleMapsAPI.findByLocation(paramLocation, languageCode, PingPlacePicker.mapsApiKey)
+                .flatMap { result: SearchResultGeocode ->
                     if (("OK" == result.status) && result.results.isNotEmpty()) {
-                        return@flatMap Single.just(result.results[0])
+                        val simplePlaceGeocode = result.results[0];
+
+                        val simplePlace = SimplePlace(simplePlaceGeocode.placeId, simplePlaceGeocode.types, simplePlaceGeocode.geometry, simplePlaceGeocode.formatted_address, null)
+                        return@flatMap Single.just(simplePlace)
                     }
                     return@flatMap Single.just(null)
                 }

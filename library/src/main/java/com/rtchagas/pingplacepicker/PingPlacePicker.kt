@@ -7,10 +7,10 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.Place
 import com.rtchagas.pingplacepicker.inject.PingKoinContext
 import com.rtchagas.pingplacepicker.inject.repositoryModule
 import com.rtchagas.pingplacepicker.inject.viewModelModule
+import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.ui.PlacePickerActivity
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -98,7 +98,7 @@ class PingPlacePicker private constructor() {
         var isAutocompleteDisabled = false
 
         @JvmStatic
-        fun getPlace(intent: Intent): Place? {
+        fun getPlace(intent: Intent): SimplePlace? {
             return intent.getParcelableExtra(EXTRA_PLACE)
         }
     }

@@ -1,6 +1,7 @@
 package com.rtchagas.pingplacepicker.repository.googlemaps
 
 import com.rtchagas.pingplacepicker.model.SearchResult
+import com.rtchagas.pingplacepicker.model.SearchResultGeocode
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -19,6 +20,7 @@ interface GoogleMapsAPI {
 
     @GET("geocode/json")
     fun findByLocation(@Query("latlng") location: String,
+                       @Query("language") language: String,
                        @Query("key") apiKey: String)
-            : Single<SearchResult>
+            : Single<SearchResultGeocode>
 }
