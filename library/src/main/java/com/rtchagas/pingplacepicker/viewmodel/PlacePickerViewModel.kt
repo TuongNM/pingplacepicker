@@ -1,17 +1,21 @@
 package com.rtchagas.pingplacepicker.viewmodel
 
+import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.maps.model.LatLng
 import com.rtchagas.pingplacepicker.PingPlacePicker
 import com.rtchagas.pingplacepicker.model.SimplePlace
 import com.rtchagas.pingplacepicker.repository.PlaceRepository
+import com.rtchagas.pingplacepicker.repository.googlemaps.LastNearbySearchSingleton
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
 class PlacePickerViewModel constructor(private var repository: PlaceRepository)
     : BaseViewModel() {
+
+    private val kMinimumDistanceBeforeNearbySearch = 20
 
     // Keep the place list in this view model state
     private val placeList: MutableLiveData<Resource<List<SimplePlace>>> = MutableLiveData()
@@ -23,7 +27,25 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         // If we already loaded the places for this location, return the same live data
         // instead of fetching (and charging) again.
         placeList.value?.run {
-            if (lastLocation == location) return placeList
+            if (lastLocation == location)
+            {
+                return placeList
+            }
+        }
+
+        val lastLocationForNearbySearch = LastNearbySearchSingleton.lastLocationForNearbySearch
+        val lastPlacesList = LastNearbySearchSingleton.lastPlacesList
+
+        if (lastLocationForNearbySearch != null && lastPlacesList != null)
+        {
+            val resultArray = FloatArray(1)
+            Location.distanceBetween(lastLocationForNearbySearch.latitude, lastLocationForNearbySearch.longitude, location.latitude, location.longitude, resultArray)
+
+            if (resultArray[0] < this.kMinimumDistanceBeforeNearbySearch)
+            {
+                placeList.value = Resource.success(lastPlacesList)
+                return placeList
+            }
         }
 
         // Update the last fetched location
@@ -52,13 +74,15 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                             if ( (PingPlacePicker.isNearbySearchEnabled || PingPlacePicker.useNearbySearchInsteadOfCurrentPlace) && PingPlacePicker.resolveNearbySearchPaging )
                             {
                                 nextPageToken?.let { pageToken ->
-                                    getNearbyPlacesWithPageToken(pageToken, newPlaceList)
+                                    getNearbyPlacesWithPageToken(pageToken, newPlaceList, location)
                                 }
                             }
                             else
                             {
                                 val sortedPlaceList = this.sortPlaceListByDistanceAndFilterPOIs(aPlaceList)
                                 placeList.value = Resource.success(sortedPlaceList)
+
+                                LastNearbySearchSingleton.updateLastNearbySearch(location, sortedPlaceList)
                             }
                         },
                         { error: Throwable -> placeList.value = Resource.error(error) }
@@ -89,7 +113,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
         return liveData
     }
 
-    private fun getNearbyPlacesWithPageToken(pageToken: String, currentPlaceList: List<SimplePlace>)
+    private fun getNearbyPlacesWithPageToken(pageToken: String, currentPlaceList: List<SimplePlace>, lastLocation: LatLng)
     {
         try
         {
@@ -111,10 +135,12 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                             val newPlaceList = currentPlaceList + nextPlaceList
 
                             nextPageToken?.also { theNextPageToken ->
-                                getNearbyPlacesWithPageToken(theNextPageToken, newPlaceList)
+                                getNearbyPlacesWithPageToken(theNextPageToken, newPlaceList, lastLocation)
                             } ?: kotlin.run {
                                 val sortedPlaceList = this.sortPlaceListByDistanceAndFilterPOIs(newPlaceList)
                                 placeList.value = Resource.success(sortedPlaceList)
+
+                                LastNearbySearchSingleton.updateLastNearbySearch(lastLocation, sortedPlaceList)
                             }
                         },
                         { error: Throwable -> placeList.value = Resource.error(error) }
