@@ -22,7 +22,7 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
 
     private var lastLocation: LatLng = LatLng(0.0, 0.0)
 
-    fun getNearbyPlaces(location: LatLng): LiveData<Resource<List<SimplePlace>>> {
+    fun getNearbyPlaces(location: LatLng, filterType: String): LiveData<Resource<List<SimplePlace>>> {
 
         // If we already loaded the places for this location, return the same live data
         // instead of fetching (and charging) again.
@@ -59,7 +59,8 @@ class PlacePickerViewModel constructor(private var repository: PlaceRepository)
                 else
                     repository.getNearbyPlaces()
          */
-        val placeQuery = repository.getNearbyPlaces(location)
+
+        val placeQuery = repository.getNearbyPlaces(location, filterType)
 
         var newPlaceList: List<SimplePlace>
         val disposable: Disposable = placeQuery

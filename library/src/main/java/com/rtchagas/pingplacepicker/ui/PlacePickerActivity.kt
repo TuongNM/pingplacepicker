@@ -468,13 +468,17 @@ class PlacePickerActivity : AppCompatActivity(), PingKoinComponent,
     }
 
     private fun loadNearbyPlaces() {
-        viewModel.getNearbyPlaces(lastKnownLocation ?: defaultLocation)
+        val filterType = this.resources.getString(R.string.nearby_search_type_filter)
+
+        viewModel.getNearbyPlaces(lastKnownLocation ?: defaultLocation, filterType)
                 .observe(this, Observer { handlePlacesLoaded(it) })
     }
 
     private fun refreshNearbyPlaces() {
+        val filterType = this.resources.getString(R.string.nearby_search_type_filter)
+
         googleMap?.cameraPosition?.run {
-            viewModel.getNearbyPlaces(target)
+            viewModel.getNearbyPlaces(target, filterType)
                     .observe(this@PlacePickerActivity, Observer { handlePlacesLoaded(it) })
         }
     }

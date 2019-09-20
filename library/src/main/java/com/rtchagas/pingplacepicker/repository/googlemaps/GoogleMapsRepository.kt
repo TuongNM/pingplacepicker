@@ -63,11 +63,11 @@ class GoogleMapsRepository constructor(
      * [Places SDK WEB API Usage and
     Billing](https://developers.google.com/maps/billing/understanding-cost-of-use#nearby-search)
      */
-    override fun getNearbyPlaces(location: LatLng): Single<Pair<String?, List<SimplePlace>>> {
+    override fun getNearbyPlaces(location: LatLng, filterType: String): Single<Pair<String?, List<SimplePlace>>> {
 
         val locationParam = "${location.latitude},${location.longitude}"
 
-        return googleMapsAPI.searchNearby(locationParam, PingPlacePicker.mapsApiKey)
+        return googleMapsAPI.searchNearby(locationParam, PingPlacePicker.mapsApiKey, filterType)
                 .map { searchResult ->
                     Pair(searchResult.next_page_token, searchResult.results)
                 }
